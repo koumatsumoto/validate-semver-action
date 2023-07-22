@@ -7,46 +7,78 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        test_data:
-          - "0.0.4"
-          - "1.2.3"
-          - "10.20.30"
-          - "1.1.2-prerelease+meta"
-          - "1.1.2+meta"
-          - "1.1.2+meta-valid"
-          - "1.0.0-alpha"
-          - "1.0.0-beta"
-          - "1.0.0-alpha.beta"
-          - "1.0.0-alpha.beta.1"
-          - "1.0.0-alpha.1"
-          - "1.0.0-alpha0.valid"
-          - "1.0.0-alpha.0valid"
-          - "1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay"
-          - "1.0.0-rc.1+build.1"
-          - "2.0.0-rc.1+build.123"
-          - "1.2.3-beta"
-          - "10.2.3-DEV-SNAPSHOT"
-          - "1.2.3-SNAPSHOT-123"
-          - "1.0.0"
-          - "2.0.0"
-          - "1.1.7"
-          - "2.0.0+build.1848"
-          - "2.0.1-alpha.1227"
-          - "1.0.0-alpha+beta"
-          - "1.2.3----RC-SNAPSHOT.12.9.1--.12+788"
-          - "1.2.3----R-S.12.9.1--.12+meta"
-          - "1.2.3----RC-SNAPSHOT.12.9.1--.12"
-          - "1.0.0+0.build.1-rc.10000aaa-kk-0.1"
-          - "99999999999999999999999.999999999999999999.99999999999999999"
-          - "1.0.0-0A.is.legal"
+        # テストケース
+        include:
+          - value: "0.0.4"
+            expected_result: "0.0.4"
+          - value: "1.2.3"
+            expected_result: "1.2.3"
+          - value: "10.20.30"
+            expected_result: "10.20.30"
+          - value: "1.1.2-prerelease+meta"
+            expected_result: "1.1.2-prerelease+meta"
+          - value: "1.1.2+meta"
+            expected_result: "1.1.2+meta"
+          - value: "1.1.2+meta-valid"
+            expected_result: "1.1.2+meta-valid"
+          - value: "1.0.0-alpha"
+            expected_result: "1.0.0-alpha"
+          - value: "1.0.0-alpha.beta"
+            expected_result: "1.0.0-alpha.beta"
+          - value: "1.0.0-alpha.beta.1"
+            expected_result: "1.0.0-alpha.beta.1"
+          - value: "1.0.0-alpha.1"
+            expected_result: "1.0.0-alpha.1"
+          - value: "1.0.0-alpha0.valid"
+            expected_result: "1.0.0-alpha0.valid"
+          - value: "1.0.0-alpha.0valid"
+            expected_result: "1.0.0-alpha.0valid"
+          - value: "1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay"
+            expected_result: "1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay"
+          - value: "1.0.0-rc.1+build.1"
+            expected_result: "1.0.0-rc.1+build.1"
+          - value: "1.2.3-beta"
+            expected_result: "1.2.3-beta"
+          - value: "10.2.3-DEV-SNAPSHOT"
+            expected_result: "10.2.3-DEV-SNAPSHOT"
+          - value: "1.2.3-SNAPSHOT-123"
+            expected_result: "1.2.3-SNAPSHOT-123"
+          - value: "2.0.0+build.1848"
+            expected_result: "2.0.0+build.1848"
+          - value: "2.0.1-alpha.1227"
+            expected_result: "2.0.1-alpha.1227"
+          - value: "1.0.0-alpha+beta"
+            expected_result: "1.0.0-alpha+beta"
+          - value: "1.2.3----RC-SNAPSHOT.12.9.1--.12+788"
+            expected_result: "1.2.3----RC-SNAPSHOT.12.9.1--.12+788"
+          - value: "1.2.3----R-S.12.9.1--.12+meta"
+            expected_result: "1.2.3----R-S.12.9.1--.12+meta"
+          - value: "1.2.3----RC-SNAPSHOT.12.9.1--.12"
+            expected_result: "1.2.3----RC-SNAPSHOT.12.9.1--.12"
+          - value: "1.0.0+0.build.1-rc.10000aaa-kk-0.1"
+            expected_result: "1.0.0+0.build.1-rc.10000aaa-kk-0.1"
+          - value: "99999999999999999999999.999999999999999999.99999999999999999"
+            expected_result: "99999999999999999999999.999999999999999999.99999999999999999"
+          - value: "1.0.0-0A.is.legal"
+            expected_result: "1.0.0-0A.is.legal"
+          - value: "v1.0.0-0A.is.legal"
+            expected_result: "1.0.0-0A.is.legal"
 
     steps:
       - uses: actions/checkout@v3
 
-      - id: test_result
+      - name: Execute Composite Action
+        id: test_result
         uses: ./
         with:
-          version: ${{ matrix.test_data }}
+          value: ${{ matrix.value }}
 
-      - name: print results
-        run: echo ${{ steps.test_result.outputs.version }}
+      - name: Assert result
+        run: |
+          echo "${{ toJSON(steps.test_result.outputs) }}"
+
+          test $version = $expected_result || \
+            { echo "::error expected=$expected_result,actual=$version::InvalidResult"; exit 1; }
+        env:
+          version: ${{ steps.test_result.outputs.version }}
+          expected_result: ${{ matrix.expected_result }}

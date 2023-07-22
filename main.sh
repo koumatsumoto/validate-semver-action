@@ -11,8 +11,8 @@ fi
 # https://semver.org/
 
 # semverとは関係のない無視する部分
-left_text='^[^0-9]*'
-right_text='.*$'
+left_part='^[^0-9]*'
+right_part='[^0-9a-zA-Z]*$'
 # 必須のversion部分
 major_version='(0|[1-9][0-9]*)'
 minor_version='(0|[1-9][0-9]*)'
@@ -23,12 +23,16 @@ pre_release='(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0
 # 任意のbuild部分
 build='(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))'
 
-regexp="s/${left_text}(${version_core}${pre_release}?${build}?)?${right_text}/\1/p"
-result="$(echo $input_text | sed -nre $regexp)"
+regexp="s/${left_part}(${version_core}${pre_release}?${build}?)?${right_part}/\1/p"
+captured_version="$(echo $input_text | sed -nre $regexp)"
 
-if [ -z $result ]; then
+if [ -z $captured_version ]; then
   echo "::error line=$LINENO::InvalidSemverFormat"
   exit 1
 fi
 
-echo $result
+# 結果出力
+# 出力は$GITHUB_OUTPUTにリダイレクトされる
+echo "raw_value=$input_text"
+echo "version=$captured_version"
+echo "coerced=$([ "$input_text" = "$captured_version" ] && echo "false" || echo "true")"

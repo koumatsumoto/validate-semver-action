@@ -1,15 +1,21 @@
-name: koumatsumoto/get-npm-package-info-action
-description: Action to get npm package name, version and git commit hash
+name: koumatsumoto/validate-semver-action
+description: Action for validating whether the version string is correct according to Semantic Versioning.
 
 inputs:
-  version:
-    description: "string value of version"
+  value:
+    description: "string value to be validated"
     required: true
 
 outputs:
+  raw_value:
+    description: "Raw inputted value"
+    value: ${{ steps.result.outputs.value }}
   version:
-    description: "Extracted version"
+    description: "Coerced version string"
     value: ${{ steps.result.outputs.version }}
+  coerced:
+    description: "true if Output version is coerced"
+    value: ${{ steps.result.outputs.coerced }}
 
 runs:
   using: "composite"
@@ -17,6 +23,4 @@ runs:
     - name: Extract version string
       shell: bash
       id: result
-      run: |
-        result="$(. ${GITHUB_ACTION_PATH}/main.sh ${{ inputs.version }})"
-        echo "version=$result" >> $GITHUB_OUTPUT
+      run: echo "$(. ${GITHUB_ACTION_PATH}/main.sh ${{ inputs.value }})" >> $GITHUB_OUTPUT
