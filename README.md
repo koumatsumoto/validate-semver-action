@@ -2,6 +2,22 @@
 
 The GitHub Composite Action for validating whether the version string is correct according to Semantic Versioning.
 
+## 使い方
+
+### サンプルコード
+
+```yaml
+- uses: koumatsumoto/validate-semver-action@v1
+  id: validate_version
+  with:
+    value: ${{ github.ref_name }}
+
+- run: |
+    echo "${{ steps.validate_version.outputs.raw_value }}"
+    echo "${{ steps.validate_version.outputs.version }}"
+    echo "${{ steps.validate_version.outputs.coerced }}"
+```
+
 ## ローカル環境構築
 
 開発する上で、事前に以下のツールをインストールする。
