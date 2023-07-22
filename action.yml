@@ -1,0 +1,22 @@
+name: koumatsumoto/get-npm-package-info-action
+description: Action to get npm package name, version and git commit hash
+
+inputs:
+  version:
+    description: "string value of version"
+    required: true
+
+outputs:
+  version:
+    description: "Extracted version"
+    value: ${{ steps.result.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Extract version string
+      shell: bash
+      id: result
+      run: |
+        result="$(. ${GITHUB_ACTION_PATH}/main.sh ${{ inputs.version }})"
+        echo "version=$result" >> $GITHUB_OUTPUT
